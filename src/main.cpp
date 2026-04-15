@@ -1,9 +1,8 @@
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 #include "iostream"
-
-const int WINDOW_WIDTH = 800;
-const int WINDOW_HEIGHT = 800;
+#include "globals.hpp"
+#include "renderer.hpp"
 
 int main(){
     glfwInit();
@@ -21,14 +20,18 @@ int main(){
     }
 
     glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    Renderer renderer;
+
+    renderer.init();
 
     while(!glfwWindowShouldClose(window)){
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT);
-
+        renderer.draw();
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+    renderer.clean();
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
