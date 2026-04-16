@@ -18,6 +18,7 @@
     and maybe ill include some gui customisation and a way to save and load different minigames
     that have been created using the gui
 
+![Engine plan:](engine_plan.png)
 
 # Engine design
     This engine is comprised of two components, The renderer, and the Logical side.
