@@ -14,6 +14,10 @@
     is very different to what i plan on the final version being like, so it includes
     a few bugs and is extremley limited.
 
+    i have large plans for this engine, it will allow me to make grid based games in c++ easily,
+    and maybe ill include some gui customisation and a way to save and load different minigames
+    that have been created using the gui
+
 
 # Engine design
     This engine is comprised of two components, The renderer, and the Logical side.
@@ -36,4 +40,5 @@
     for example:
         a cell might have an ID of 1, which corresponds to sand, then when its being
         updated it follows the rules for sands falling rules ect...
+    its then uploaded to the renderer to be displayed
 
