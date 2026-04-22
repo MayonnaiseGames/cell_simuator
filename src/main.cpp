@@ -1,38 +1,110 @@
-#include "glad/glad.h"
-#include "GLFW/glfw3.h"
-#include "iostream"
-#include "globals.hpp"
+//External
+#include <glad.h>
+#include <glfw3.h>
+#include <iostream>
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
+#include <vector>
+
+//Internal
 #include "renderer.hpp"
+#include "settings.hpp"
+
+//Constants
+#define WINDOW_WIDTH 1000
+#define WINDOW_HEIGHT 1000
 
 int main(){
+    //Create window 
     glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6); glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Cellular Sandbox", NULL, NULL);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); //telling GLFW what opengl version thats being used
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE,  GLFW_OPENGL_CORE_PROFILE); //telling GLFW using modern opengl
+    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Cell and Particle Simulation Engine", NULL, NULL);
     if(!window){
-        std::cout<<"FAILED TO CREATE GLFW WINDOW\n";
+        std::cout<<"Window failed to create!\n";
         glfwTerminate();
-        return 0;
+        return -1;
     }
-    glfwMakeContextCurrent(window);
+    glfwMakeContextCurrent(window); //make the window the current one for the opengl context
 
-    if(!gladLoadGL()){
-        std::cout<<"FAILED TO LOAD OPENGL\n";
+    //Load OpenGL
+    if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
+        std::cout<<"OpenGL failed to load!\n";
+        return -1;
     }
-
     glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-    Renderer renderer;
 
-    renderer.init();
+    //Initialise the renderer to display the texture
+    Renderer renderer = Renderer();
 
+    //Initialise ImGui
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
+    
+
+    
     while(!glfwWindowShouldClose(window)){
-        glClearColor(0, 0, 0, 1);
-        glClear(GL_COLOR_BUFFER_BIT);
+        //Render game
+        if(settings.wireframe){
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        }
+        else{
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+    
         renderer.draw();
+
+        // Start ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        //Menu UI
+        {
+            ImGui::Begin("Menu", nullptr,  ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+            if(ImGui::CollapsingHeader("Game modes")){
+                ImGui::Text("Cell and Particle Simulation Engine");
+            }
+            if(ImGui::CollapsingHeader("Settings")){
+                ImGui::Checkbox("Wireframe rendering", &settings.wireframe);
+                ImGui::Checkbox("Show debug menu", &settings.show_debug);
+                ImGui::Checkbox("Show console", &settings.show_console);
+            }
+
+            ImGui::End();
+        }
+
+        //Debug UI
+        {
+            if(settings.show_debug){
+                ImGui::Begin("Debug menu", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+                ImGuiIO& io = ImGui::GetIO();
+                ImGui::Text("FPS: %.0f", io.Framerate);
+                ImGui::Text("Frame time: %.3f ms", 1000.0f / io.Framerate);
+                ImGui::End();
+            }
+        }
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData()); 
+
+        //Update frame
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    renderer.clean();
+
+    //Free memory
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     glfwDestroyWindow(window);
     glfwTerminate();
+
     return 0;
 }

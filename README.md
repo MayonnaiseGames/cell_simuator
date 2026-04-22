@@ -15,7 +15,6 @@ I have large plans for this engine, it will allow me to make grid based games in
     and I will include some GUI customisation and a way to save and load different simulations/games
     that have been created using the GUI.
 
-![Engine plan:](engine_plan.png)
 
 # Engine design
 This engine is comprised of two components, the renderer, and the logical side.
