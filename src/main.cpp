@@ -10,10 +10,14 @@
 //Internal
 #include "renderer.hpp"
 #include "settings.hpp"
+#include "simulation.hpp"
 
 //Constants
 #define WINDOW_WIDTH 1000
 #define WINDOW_HEIGHT 1000
+
+//Variables
+int grid_size = 100;
 
 int main(){
     //Create window 
@@ -39,6 +43,9 @@ int main(){
     //Initialise the renderer to display the texture
     Renderer renderer = Renderer();
 
+    //Initialise the simulation
+    Simulation simulation = Simulation(WINDOW_WIDTH, WINDOW_HEIGHT);
+
     //Initialise ImGui
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -47,17 +54,18 @@ int main(){
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
     
-
-    
+    simulation.clear(grid_size, grid_size, 0);
+    srand(time(0));
     while(!glfwWindowShouldClose(window)){
+        //Update game
+        simulation.update(window, grid_size, grid_size);
+        
+        //simulation.set_state(200, 200, grid_size, grid_size, 1);
+        simulation.fill_random(grid_size, grid_size, 1);
+
+
         //Render game
-        if(settings.wireframe){
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        }
-        else{
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        }
-    
+        renderer.upload_data(simulation.data, grid_size, grid_size);
         renderer.draw();
 
         // Start ImGui frame
@@ -66,10 +74,29 @@ int main(){
         ImGui::NewFrame();
 
         //Menu UI
-        {
+        {   
             ImGui::Begin("Menu", nullptr,  ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+            if(ImGui::CollapsingHeader("Simulation options")){
+                ImGui::Text("Size: %dx%d", grid_size, grid_size);
+                if(ImGui::Button("+ Grid size") && grid_size < 500){
+                    grid_size += 20;
+                    simulation.clear(grid_size, grid_size, 0);
+                }
+                if(ImGui::Button("- Grid size") && grid_size > 20){
+                    grid_size -= 20;
+                    simulation.clear(grid_size, grid_size, 0);
+                }
+                if(ImGui::Button("Clear grid")){
+                    simulation.clear(grid_size, grid_size, 0);
+                }
+                if(ImGui::Button("Fill random")){
+                    simulation.fill_random(grid_size, grid_size, 1);
+                }
+            }
             if(ImGui::CollapsingHeader("Game modes")){
-                ImGui::Text("Cell and Particle Simulation Engine");
+                if(ImGui::Button("Game of life mode")){
+                    settings.game_mode = 1;
+                }
             }
             if(ImGui::CollapsingHeader("Settings")){
                 ImGui::Checkbox("Wireframe rendering", &settings.wireframe);
@@ -80,7 +107,7 @@ int main(){
             ImGui::End();
         }
 
-        //Debug UI
+        //Handle settings
         {
             if(settings.show_debug){
                 ImGui::Begin("Debug menu", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
@@ -88,6 +115,18 @@ int main(){
                 ImGui::Text("FPS: %.0f", io.Framerate);
                 ImGui::Text("Frame time: %.3f ms", 1000.0f / io.Framerate);
                 ImGui::End();
+            }
+
+            if(settings.show_console){
+                ImGui::Begin("Console");
+                ImGui::End();
+            }
+
+            if(settings.wireframe){
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            }
+            else{
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             }
         }
 

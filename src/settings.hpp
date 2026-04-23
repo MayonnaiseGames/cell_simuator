@@ -7,6 +7,7 @@ struct Settings{
     bool wireframe;
     bool show_debug;
     bool show_console;
+    int game_mode;
 };
 
 extern Settings settings;

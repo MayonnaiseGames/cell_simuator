@@ -29,7 +29,7 @@ imgui/backends/imgui_impl_opengl3.cpp
 LIB_OBJ := $(LIB_SRC:.cpp=.o)
 LIB_OBJ := $(LIB_OBJ:.c=.o)
 
-OUT := main
+OUT := CAPSE
 
 # Default build
 all: $(OUT)

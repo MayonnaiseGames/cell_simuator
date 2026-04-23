@@ -3,5 +3,6 @@
 Settings settings = {
     false,
     false,
-    false
+    false,
+    1
 };
