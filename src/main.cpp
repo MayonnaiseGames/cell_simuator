@@ -6,6 +6,8 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <vector>
+#include <thread>
+#include <chrono>
 
 //Internal
 #include "renderer.hpp"
@@ -18,6 +20,8 @@
 
 //Variables
 int grid_size = 100;
+int fps = 60;
+double target_frame_time = 1.0 / fps;
 
 int main(){
     //Create window 
@@ -57,12 +61,9 @@ int main(){
     simulation.clear(grid_size, grid_size, 0);
     srand(time(0));
     while(!glfwWindowShouldClose(window)){
+        double start_time = glfwGetTime();
         //Update game
         simulation.update(window, grid_size, grid_size);
-        
-        //simulation.set_state(200, 200, grid_size, grid_size, 1);
-        simulation.fill_random(grid_size, grid_size, 1);
-
 
         //Render game
         renderer.upload_data(simulation.data, grid_size, grid_size);
@@ -73,10 +74,22 @@ int main(){
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        //Specific mode UI
+        //simulation.draw_ui();
+        
         //Menu UI
         {   
             ImGui::Begin("Menu", nullptr,  ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
             if(ImGui::CollapsingHeader("Simulation options")){
+                ImGui::Checkbox("Running", &simulation.running);
+                for(int i = 0; i < 5; i++){
+                    ImGui::Spacing();
+                }
+                ImGui::SliderInt("FPS", &fps, 10, 60);
+                ImGui::Text("30FPS reccommended for above 350x350");
+                for(int i = 0; i < 5; i++){
+                    ImGui::Spacing();
+                }
                 ImGui::Text("Size: %dx%d", grid_size, grid_size);
                 if(ImGui::Button("+ Grid size") && grid_size < 500){
                     grid_size += 20;
@@ -110,7 +123,7 @@ int main(){
         //Handle settings
         {
             if(settings.show_debug){
-                ImGui::Begin("Debug menu", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+                ImGui::Begin("Debug menu", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
                 ImGuiIO& io = ImGui::GetIO();
                 ImGui::Text("FPS: %.0f", io.Framerate);
                 ImGui::Text("Frame time: %.3f ms", 1000.0f / io.Framerate);
@@ -136,6 +149,14 @@ int main(){
         //Update frame
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        // Frame limiting
+        double elapsed = glfwGetTime() - start_time;
+        target_frame_time = 1.0/fps;
+        if (elapsed < target_frame_time) {
+            double sleepTime = target_frame_time - elapsed;
+            std::this_thread::sleep_for(std::chrono::duration<double>(sleepTime));
+        }
     }
 
     //Free memory
