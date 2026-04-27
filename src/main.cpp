@@ -85,7 +85,7 @@ int main(){
                 for(int i = 0; i < 5; i++){
                     ImGui::Spacing();
                 }
-                ImGui::SliderInt("FPS", &fps, 10, 60);
+                ImGui::SliderInt("FPS", &fps, 5, 60);
                 ImGui::Text("30FPS reccommended for above 350x350");
                 for(int i = 0; i < 5; i++){
                     ImGui::Spacing();
@@ -102,13 +102,22 @@ int main(){
                 if(ImGui::Button("Clear grid")){
                     simulation.clear(grid_size, grid_size, 0);
                 }
-                if(ImGui::Button("Fill random")){
-                    simulation.fill_random(grid_size, grid_size, 1);
-                }
+                // if(ImGui::Button("Fill random")){
+                //     simulation.fill_random(grid_size, grid_size, 1);
+                // }
             }
             if(ImGui::CollapsingHeader("Game modes")){
                 if(ImGui::Button("Game of life mode")){
+                    simulation.clear(grid_size, grid_size, 0);
                     settings.game_mode = 1;
+                }
+                if(ImGui::Button("Fill mode")){
+                    simulation.clear(grid_size, grid_size, 0);
+                    settings.game_mode  = 2;
+                }
+                if(ImGui::Button("GOL Battle mode")){
+                    simulation.clear(grid_size, grid_size, 0);
+                    settings.game_mode  = 3;
                 }
             }
             if(ImGui::CollapsingHeader("Settings")){
@@ -123,7 +132,7 @@ int main(){
         //Handle settings
         {
             if(settings.show_debug){
-                ImGui::Begin("Debug menu", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
+                ImGui::Begin("Debug menu", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
                 ImGuiIO& io = ImGui::GetIO();
                 ImGui::Text("FPS: %.0f", io.Framerate);
                 ImGui::Text("Frame time: %.3f ms", 1000.0f / io.Framerate);

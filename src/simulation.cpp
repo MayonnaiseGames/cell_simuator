@@ -13,22 +13,71 @@ void Simulation::update(GLFWwindow* window, int Grid_width, int Grid_height){
         glfwGetCursorPos(window, &mouse_x, &mouse_y);
         mouse_y = window_height - mouse_y;
     }
-    if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) ==  GLFW_PRESS){
-        int cell_x = static_cast<int>(mouse_x * grid_width / window_width);
-        int cell_y = static_cast<int>(mouse_y * grid_height / window_height);
-        set_state(cell_x, cell_y, grid_width, grid_height, 1);
+
+    if(glfwGetKey(window, GLFW_KEY_SPACE)){
+        running = false;
+    }
+    if(glfwGetKey(window, GLFW_KEY_P)){
+        running = true;
+    }
+    
+
+  
+    switch (settings.game_mode){
+        case 1:
+            if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) ==  GLFW_PRESS){
+                int cell_x = static_cast<int>(mouse_x * grid_width / window_width);
+                int cell_y = static_cast<int>(mouse_y * grid_height / window_height);
+                set_state(cell_x, cell_y, grid_width, grid_height, 1);
+            }
+            else if(glfwGetKey(window, GLFW_KEY_BACKSPACE) ==  GLFW_PRESS){
+                int cell_x = static_cast<int>(mouse_x * grid_width / window_width);
+                int cell_y = static_cast<int>(mouse_y * grid_height / window_height);
+                set_state(cell_x, cell_y, grid_width, grid_height, 0);
+            }
+            if(running){
+                gol();
+            }
+            
+            break;
+        case 2:
+            if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) ==  GLFW_PRESS){
+                int cell_x = static_cast<int>(mouse_x * grid_width / window_width);
+                int cell_y = static_cast<int>(mouse_y * grid_height / window_height);
+                set_state(cell_x, cell_y, grid_width, grid_height, 2);
+            }
+            else if(glfwGetKey(window, GLFW_KEY_BACKSPACE) ==  GLFW_PRESS){
+                int cell_x = static_cast<int>(mouse_x * grid_width / window_width);
+                int cell_y = static_cast<int>(mouse_y * grid_height / window_height);
+                set_state(cell_x, cell_y, grid_width, grid_height, 0);
+            }
+            if(running){
+                fill();
+            }
+            break;
+        case 3:
+            if(glfwGetKey(window, GLFW_KEY_1) ==  GLFW_PRESS){
+                int cell_x = static_cast<int>(mouse_x * grid_width / window_width);
+                int cell_y = static_cast<int>(mouse_y * grid_height / window_height);
+                set_state(cell_x, cell_y, grid_width, grid_height, 1);
+            }
+            else if(glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS){
+                int cell_x = static_cast<int>(mouse_x * grid_width / window_width);
+                int cell_y = static_cast<int>(mouse_y * grid_height / window_height);
+                set_state(cell_x, cell_y, grid_width, grid_height, 2);
+            }
+            else if(glfwGetKey(window, GLFW_KEY_BACKSPACE) ==  GLFW_PRESS){
+                int cell_x = static_cast<int>(mouse_x * grid_width / window_width);
+                int cell_y = static_cast<int>(mouse_y * grid_height / window_height);
+                set_state(cell_x, cell_y, grid_width, grid_height, 0);
+            }
+            if(running){
+                gol_battle();
+            }
+        default:
+            break;
     }
 
-    if(running){
-        switch (settings.game_mode){
-            case 1:
-                gol();
-                break;
-            
-            default:
-                break;
-        }
-    }
     
     
 }
@@ -57,6 +106,105 @@ void Simulation::gol(){
     data = new_data;
 }
 
+void Simulation::fill(){
+    std::vector<uint16_t> new_data = data;
+
+    for(int x = 0; x < grid_width; x++){
+        for(int y = 0; y < grid_height; y++){
+            int neighbours = count_live_neighbours(x, y);
+            int current_pos = data[y * grid_width + x];
+
+            if(current_pos == 1){
+                if(neighbours < 2 || neighbours > 3){
+                    new_data[y * grid_width + x] = 0;
+                }
+            } 
+            else{
+                if(neighbours == 1){ //change to 1 for fun
+                    new_data[y * grid_width + x] = 2;
+                }
+            }
+        }
+    }
+
+    data = new_data;
+}
+
+void Simulation::gol_battle(){
+    std::vector<uint16_t> new_data = data;
+    int reproduce_num = 3;
+    for(int x = 0; x < grid_width; x++){
+        for(int y = 0; y < grid_height; y++){
+            int neighbours = count_live_neighbours(x, y);
+            int current_type = data[y * grid_width + x];
+            int green_count = 0;
+            int red_count = 0;
+
+            for(int delta_y = -1; delta_y <= 1; delta_y++){
+                for(int delta_x = -1; delta_x <= 1; delta_x++){
+                    //dont check current cell
+                    if(delta_x == 0 && delta_y == 0){
+                        continue;
+                    }
+
+                    //calculate position of neighbor
+                    int neighbor_x = (x + delta_x + grid_width) % grid_width;
+                    int neighbor_y = (y + delta_y + grid_height) % grid_height;
+
+                    int neighbor_value = get_state(neighbor_x, neighbor_y, grid_width, grid_height);
+                    if(neighbor_value == 1){
+                        green_count ++;
+                    }
+                    else if(neighbor_value == 2){
+                        red_count++;
+                    }
+                }
+            }
+
+            if(green_count > red_count){
+                if(current_type){
+                    if(neighbours < 2 || neighbours > 3){
+                        new_data[y * grid_width + x] = 0;
+                    }
+                } 
+                else{
+                    if(neighbours == reproduce_num){ //change to 1 for fun
+                        new_data[y * grid_width + x] = 1;
+                    }
+                }
+            }
+            else if(red_count > green_count){
+                if(current_type){
+                    if(neighbours < 2 || neighbours > 3){
+                        new_data[y * grid_width + x] = 0;
+                    }
+                } 
+                else{
+                    if(neighbours == reproduce_num){ //change to 1 for fun
+                        new_data[y * grid_width + x] = 2;
+                    }
+                }
+            }
+            else{
+                if(current_type){
+                    if(neighbours < 2 || neighbours > 3){
+                        new_data[y * grid_width + x] = 0;
+                    }
+                } 
+                else{
+                    if(neighbours == reproduce_num){ //change to 1 for fun
+                        new_data[y * grid_width + x] = (rand() % 2) + 1;;
+                    }
+                }
+            }
+            
+            
+        }
+    }
+
+    data = new_data;
+}
+
 int Simulation::count_live_neighbours(int x, int y){
     int neighbours = 0;
     for(int delta_y = -1; delta_y <= 1; delta_y++){
@@ -66,7 +214,9 @@ int Simulation::count_live_neighbours(int x, int y){
             int nx = (x + delta_x + grid_width) % grid_width;
             int ny = (y + delta_y + grid_height) % grid_height;
 
-            neighbours += data[ny * grid_width + nx];
+            if(data[ny * grid_width + nx]){
+                neighbours ++;
+            }
         }
     }
     return neighbours;

@@ -29,6 +29,8 @@ class Simulation{
         
     private:
         void gol();
+        void fill();
+        void gol_battle();
         int count_live_neighbours(int x, int y);
         int window_width, window_height;
         int grid_width, grid_height;
