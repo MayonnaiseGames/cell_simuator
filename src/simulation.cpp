@@ -132,7 +132,6 @@ void Simulation::fill(){
 
 void Simulation::gol_battle(){
     std::vector<uint16_t> new_data = data;
-    int reproduce_num = 3;
     for(int x = 0; x < grid_width; x++){
         for(int y = 0; y < grid_height; y++){
             int neighbours = count_live_neighbours(x, y);
@@ -142,18 +141,16 @@ void Simulation::gol_battle(){
 
             for(int delta_y = -1; delta_y <= 1; delta_y++){
                 for(int delta_x = -1; delta_x <= 1; delta_x++){
-                    //dont check current cell
                     if(delta_x == 0 && delta_y == 0){
                         continue;
                     }
 
-                    //calculate position of neighbor
                     int neighbor_x = (x + delta_x + grid_width) % grid_width;
                     int neighbor_y = (y + delta_y + grid_height) % grid_height;
 
                     int neighbor_value = get_state(neighbor_x, neighbor_y, grid_width, grid_height);
                     if(neighbor_value == 1){
-                        green_count ++;
+                        green_count++;
                     }
                     else if(neighbor_value == 2){
                         red_count++;
@@ -161,44 +158,26 @@ void Simulation::gol_battle(){
                 }
             }
 
-            if(green_count > red_count){
-                if(current_type){
-                    if(neighbours < 2 || neighbours > 3){
-                        new_data[y * grid_width + x] = 0;
-                    }
-                } 
-                else{
-                    if(neighbours == reproduce_num){ //change to 1 for fun
-                        new_data[y * grid_width + x] = 1;
-                    }
+            int pos = y * grid_width + x;
+
+            if(current_type){
+                if(neighbours < 2 || neighbours > 3){
+                    new_data[pos] = 0;
                 }
-            }
-            else if(red_count > green_count){
-                if(current_type){
-                    if(neighbours < 2 || neighbours > 3){
-                        new_data[y * grid_width + x] = 0;
-                    }
-                } 
-                else{
-                    if(neighbours == reproduce_num){ //change to 1 for fun
-                        new_data[y * grid_width + x] = 2;
-                    }
-                }
-            }
+            } 
             else{
-                if(current_type){
-                    if(neighbours < 2 || neighbours > 3){
-                        new_data[y * grid_width + x] = 0;
+                if(neighbours == 3 || (neighbours == 4 && rand() % 3 == 0)){
+                    if(green_count > red_count){
+                        new_data[pos] = 1;
                     }
-                } 
-                else{
-                    if(neighbours == reproduce_num){ //change to 1 for fun
-                        new_data[y * grid_width + x] = (rand() % 2) + 1;;
+                    else if(red_count > green_count){
+                        new_data[pos] = 2;
+                    }
+                    else{
+                        new_data[pos] = (rand() % 2) + 1;
                     }
                 }
             }
-            
-            
         }
     }
 
