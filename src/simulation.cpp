@@ -166,7 +166,7 @@ void Simulation::gol_battle(){
                 }
             } 
             else{
-                if(neighbours == 3 || (neighbours == 4 && rand() % 3 == 0)){
+                if(neighbours == 3 || (neighbours == 4 && rand() % 4 == 0)){
                     if(green_count > red_count){
                         new_data[pos] = 1;
                     }
